@@ -58,7 +58,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint32_t g_ADCValue;
+int g_MeasurementNumber;
 /* USER CODE END 0 */
 
 /**
@@ -102,12 +103,31 @@ int main(void)
 
     while (1)
     {
+    	ADC_HandleTypeDef g_AdcHandle;
 
-    	char transmitBuffer[7] = "Chatte\n";
-  	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
-  		  HAL_Delay(100);
+    	__GPIOD_CLK_ENABLE();
+    	GPIO_InitTypeDef GPIO_InitStructure;
 
-  	HAL_UART_Transmit(&huart1, transmitBuffer , 7, 100);
+    	GPIO_InitStructure.Pin = GPIO_PIN_10;
+
+    	HAL_ADC_Start(&g_AdcHandle);
+    	for(g_MeasurementNumber = 0; g_MeasurementNumber < 1000; g_MeasurementNumber++)
+    	{
+    		if(HAL_ADC_PollForConversation(&g_AdcHandle, 100000) == HAL_OK)
+    		{
+    			g_ADCValue = HAL_ADC_GetValue(&g_AdcHandle);
+    			g_MeasurementNumber++;
+
+    			char transmitBuffer[12] = g_ADCValue;
+    			HAL_UART_Transmit(&huart1, transmitBuffer, 12, 100);
+    		}
+    	}
+
+
+//    	char transmitBuffer[7] = "Chatte\n";
+//  	  HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
+//  		  HAL_Delay(100);
+//  	HAL_UART_Transmit(&huart1, transmitBuffer , 7, 100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
